@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.24 (2026-03-06)
+
+- Chore: temporarily disable chokidar file watcher feature
+
 ## 1.4.23 (2026-03-06)
 
 - Fix: file content view minimap now uses viewport height as reference when content fits in one screen, preventing content from being stretched across entire scroll area

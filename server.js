@@ -1285,7 +1285,7 @@ async function setupTerminalWebSocket(httpServer) {
   try {
     const { WebSocketServer } = await import('ws');
     const { writeToPty, resizePty, onPtyData, onPtyExit, getPtyState, getOutputBuffer, getCurrentWorkspace } = await import('./pty-manager.js');
-    const { default: chokidar } = await import('chokidar');
+    // const { default: chokidar } = await import('chokidar');
 
     const wss = new WebSocketServer({ noServer: true });
 
@@ -1308,7 +1308,8 @@ async function setupTerminalWebSocket(httpServer) {
       return null;
     };
 
-    // 文件监控器：监控工作区目录变更
+    // 文件监控器：监控工作区目录变更（暂时禁用）
+    /*
     let fileWatcher = null;
     let fileWatchDebounceTimer = null;
     let currentWatchPath = null;
@@ -1439,6 +1440,7 @@ async function setupTerminalWebSocket(httpServer) {
       stopFileWatcher();
       return originalClose.call(this);
     };
+    */
 
     httpServer.on('upgrade', (req, socket, head) => {
       const pathname = new URL(req.url, `http://${req.headers.host}`).pathname;
