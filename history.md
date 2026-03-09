@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.4 (2026-03-09)
+
+- Fix: proxy stream error handler — add persistent error listener to prevent late-arriving errors from crashing the process
+- Fix: outputBuffer safe truncation — skip incomplete ANSI escape sequences when slicing to prevent terminal state corruption on WebSocket replay
+- Fix: local log file mode — pass access token when opening log files in new window; hide terminal button and show chat overlay for local log viewing on mobile
+- Fix: ConceptHelp modal header and close button color set to white for better visibility
+- Perf: ConceptHelp mobile responsive styles — adjusted font sizes for headings, code blocks, and textareas on small screens
+- Perf: Terminal rendering optimization — add smoothScrollDuration:0 and scrollOnUserInput:true; chunk large writes (>32KB) across animation frames to prevent main thread blocking during /resume
+
 ## 1.5.3 (2026-03-08)
 
 - Fix: Chat View Edit diff line numbers now correctly reflect file position by tracking Read results and Edit mutations via editSnapshotMap

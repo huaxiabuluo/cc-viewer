@@ -127,6 +127,8 @@ export function startProxy() {
           const { Readable, pipeline } = await import('node:stream');
           // @ts-ignore
           const nodeStream = Readable.fromWeb(response.body);
+          // 持久 error handler 兜底：防止 pipeline 清理后延迟到达的 error 事件导致进程崩溃
+          nodeStream.on('error', () => {});
           // pipeline handles stream errors; without this, unhandled 'error' events crash the process.
           pipeline(nodeStream, res, (err) => {
             if (err && process.env.CCV_DEBUG) {

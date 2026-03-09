@@ -967,7 +967,7 @@ class AppHeader extends React.Component {
               />
             </Popover>
           )}
-          {cliMode && viewMode === 'chat' && (
+          {cliMode && viewMode === 'chat' && !isLocalLog && (
             <Button
               type={terminalVisible ? 'primary' : 'default'}
               ghost={terminalVisible}

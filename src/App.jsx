@@ -802,7 +802,10 @@ class App extends React.Component {
   handleOpenLogFile = (file) => {
     // 在新窗口打开日志文件，避免覆盖当前监控窗口
     const port = window.location.port || window.location.host.split(':')[1] || '7008';
-    window.open(`${window.location.protocol}//${window.location.hostname}:${port}?logfile=${encodeURIComponent(file)}`, '_blank');
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
+    window.open(`${window.location.protocol}//${window.location.hostname}:${port}?logfile=${encodeURIComponent(file)}${tokenParam}`, '_blank');
     this.setState({ importModalVisible: false });
   };
 
@@ -909,6 +912,8 @@ class App extends React.Component {
 
     // CLI 模式 + 手机端：只显示终端，顶部显示监控状态
     if (this.state.cliMode && isMobile) {
+      const mobileIsLocalLog = !!this._isLocalLog;
+      const mobileChatActive = mobileIsLocalLog || this.state.mobileChatVisible;
       return (
         <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column', background: '#000' }}>
           <div style={{ padding: '10px 12px', background: '#111', borderBottom: '1px solid #222', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'relative' }}>
@@ -925,7 +930,7 @@ class App extends React.Component {
                 </svg>
               </button>
               <Badge status="processing" color="green" />
-              <span style={{ fontSize: 12, color: '#aaa' }}>{t('ui.liveMonitoring')}{this.state.projectName ? `: ${this.state.projectName}` : ''}</span>
+              <span style={{ fontSize: 12, color: '#aaa' }}>{mobileIsLocalLog ? t('ui.historyLog', { file: this._localLogFile }) : (t('ui.liveMonitoring') + (this.state.projectName ? `: ${this.state.projectName}` : ''))}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <Button
@@ -937,15 +942,17 @@ class App extends React.Component {
               >
                 {this.state.mobileGitDiffVisible ? t('ui.mobileGitDiffExit') : t('ui.mobileGitDiffBrowse')}
               </Button>
-              <Button
-                type="text"
-                size="small"
-                icon={<MessageOutlined />}
-                onClick={() => this.setState(prev => ({ mobileChatVisible: !prev.mobileChatVisible, mobileGitDiffVisible: false, mobileStatsVisible: false }))}
-                style={{ color: this.state.mobileChatVisible ? '#fff' : '#888', fontSize: 12 }}
-              >
-                {this.state.mobileChatVisible ? t('ui.mobileChatExit') : t('ui.mobileChatBrowse')}
-              </Button>
+              {!mobileIsLocalLog && (
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<MessageOutlined />}
+                  onClick={() => this.setState(prev => ({ mobileChatVisible: !prev.mobileChatVisible, mobileGitDiffVisible: false, mobileStatsVisible: false }))}
+                  style={{ color: this.state.mobileChatVisible ? '#fff' : '#888', fontSize: 12 }}
+                >
+                  {this.state.mobileChatVisible ? t('ui.mobileChatExit') : t('ui.mobileChatBrowse')}
+                </Button>
+              )}
             </div>
             {this.state.mobileMenuVisible && (
               <>
@@ -980,13 +987,13 @@ class App extends React.Component {
             )}
           </div>
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-            <TerminalPanel />
+            {!mobileIsLocalLog && <TerminalPanel />}
             <div className={`${styles.mobileGitDiffOverlay} ${this.state.mobileGitDiffVisible ? styles.mobileGitDiffOverlayVisible : ''}`}>
               <div className={styles.mobileGitDiffInner}>
                 <MobileGitDiff visible={this.state.mobileGitDiffVisible} />
               </div>
             </div>
-            <div className={`${styles.mobileChatOverlay} ${this.state.mobileChatVisible ? styles.mobileChatOverlayVisible : ''}`}>
+            <div className={`${styles.mobileChatOverlay} ${mobileChatActive ? styles.mobileChatOverlayVisible : ''}`}>
               {fileLoading && (
                 <div className={styles.mobileLoadingOverlay}>
                   <div className={styles.mobileLoadingSpinner} />
@@ -1215,7 +1222,7 @@ class App extends React.Component {
               )
             )}
             <div style={{ display: viewMode === 'chat' ? 'flex' : 'none', height: '100%', flexDirection: 'column' }}>
-              <ChatView requests={filteredRequests} mainAgentSessions={mainAgentSessions} userProfile={this.state.userProfile} collapseToolResults={this.state.collapseToolResults} expandThinking={this.state.expandThinking} onViewRequest={this.handleViewRequest} scrollToTimestamp={this.state.chatScrollToTs} onScrollTsDone={() => this.setState({ chatScrollToTs: null })} cliMode={this.state.cliMode} terminalVisible={this.state.terminalVisible} />
+              <ChatView requests={filteredRequests} mainAgentSessions={mainAgentSessions} userProfile={this.state.userProfile} collapseToolResults={this.state.collapseToolResults} expandThinking={this.state.expandThinking} onViewRequest={this.handleViewRequest} scrollToTimestamp={this.state.chatScrollToTs} onScrollTsDone={() => this.setState({ chatScrollToTs: null })} cliMode={this._isLocalLog ? false : this.state.cliMode} terminalVisible={this._isLocalLog ? false : this.state.terminalVisible} />
             </div>
           </Layout.Content>
           <div className={styles.footer}>

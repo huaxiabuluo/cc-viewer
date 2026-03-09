@@ -71,6 +71,8 @@ class TerminalPanel extends React.Component {
       },
       allowProposedApi: true,
       scrollback: isMobile ? 2000 : 5000,
+      smoothScrollDuration: 0,
+      scrollOnUserInput: true,
     });
 
     this.fitAddon = new FitAddon();
@@ -393,6 +395,7 @@ class TerminalPanel extends React.Component {
   /**
    * 写入节流：将高频数据合并到缓冲区，每 16ms（一帧）批量写入一次，
    * 避免大量输出时逐条触发 xterm 渲染导致卡顿。
+   * 当数据量超过 CHUNK_SIZE 时分帧写入，防止 /resume 等场景阻塞主线程。
    */
   _throttledWrite(data) {
     this._writeBuffer += data;
@@ -408,9 +411,23 @@ class TerminalPanel extends React.Component {
       cancelAnimationFrame(this._writeTimer);
       this._writeTimer = null;
     }
-    if (this._writeBuffer && this.terminal) {
-      this.terminal.write(this._writeBuffer);
+    if (!this._writeBuffer || !this.terminal) return;
+
+    const CHUNK_SIZE = 32768; // 32KB per frame
+    if (this._writeBuffer.length <= CHUNK_SIZE) {
+      // 正常小数据：直接写入，无额外开销
+      const buf = this._writeBuffer;
       this._writeBuffer = '';
+      this.terminal.write(buf);
+    } else {
+      // 大数据分帧：每帧写 32KB，剩余排入下一帧
+      const chunk = this._writeBuffer.slice(0, CHUNK_SIZE);
+      this._writeBuffer = this._writeBuffer.slice(CHUNK_SIZE);
+      this.terminal.write(chunk);
+      // 还有剩余数据，排入下一帧继续写
+      this._writeTimer = requestAnimationFrame(() => {
+        this._flushWrite();
+      });
     }
   }
 

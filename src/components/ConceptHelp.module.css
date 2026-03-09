@@ -83,3 +83,30 @@
   resize: vertical;
   outline: none;
 }
+
+@media (max-width: 768px) {
+  .modalBody {
+    font-size: 13px;
+    line-height: 1.6;
+    zoom: 0.6;
+  }
+  .modalBody h1 {
+    font-size: 18px;
+  }
+  .modalBody h2 {
+    font-size: 16px;
+  }
+  .modalBody h3 {
+    font-size: 14px;
+  }
+  .modalBody pre {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .modalBody code {
+    font-size: 12px;
+  }
+  .modalBody textarea {
+    font-size: 12px;
+  }
+}
